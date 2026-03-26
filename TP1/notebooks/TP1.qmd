@@ -1,0 +1,33 @@
+######################### 
+
+# TP individual n°1
+
+# Abril Silva Weinbaur
+
+######################### 
+
+getwd()
+
+## Crear carpetas
+
+dir.create("TP1")
+
+dir.create("TP1/notebooks")
+
+dir.create("TP1/data")
+
+dir.create("TP1/output")
+
+## Leer archivos
+
+datos_internet_user \<- read.csv("TP1/data/internet_users_world_wide.csv", skip = 4)
+
+datos_internet_countries \<- read.csv("TP1/data/metadata_countries_internet_users.csv")
+
+## Visualizar archivos
+
+head(datos_internet_user)
+
+head(datos_internet_countries)
+
+
