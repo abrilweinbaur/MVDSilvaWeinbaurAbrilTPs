@@ -87,3 +87,28 @@ datos_internet_user_long <- datos_internet_user |>
     values_to = "internet_users"
   )
 ```
+
+--- 2do commit ---
+
+## Identificar valores faltantes
+
+```{r}
+sum(is.na(datos_internet_user_long))
+sum(is.na(datos_internet_user_long$internet_users))
+colSums(is.na(datos_internet_user_long))
+
+sum(is.na(datos_internet_countries))
+colSums(is.na(datos_internet_countries))
+```
+
+## Gestionar/depurar NAs
+
+Se eliminaron las filas que contenian NAs ya que eran irrelevantes al proyecto y podían romper el codigo.
+
+```{r}
+datos_internet_user_long_sin_na <- datos_internet_user_long |> drop_na(internet_users)
+
+datos_internet_countries_sin_X <- datos_internet_countries |> subset(select = -x)
+```
+
+
