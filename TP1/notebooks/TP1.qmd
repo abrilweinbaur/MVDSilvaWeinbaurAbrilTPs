@@ -6,28 +6,84 @@
 
 ######################### 
 
+## Instalar librerias
+
+```{r}
+# install.packages("janitor")
+# install.packages("tidyr")
+```
+
+## Invocar librerias
+
+```{r}
+library(janitor)
+library(tidyr)
+```
+
+## Ubicar el archivo
+
+```{r}
 getwd()
+```
 
 ## Crear carpetas
 
-dir.create("TP1")
-
-dir.create("TP1/notebooks")
-
-dir.create("TP1/data")
-
-dir.create("TP1/output")
+```{r}
+# dir.create("TP1")
+# dir.create("TP1/notebooks")
+# dir.create("TP1/data")
+# dir.create("TP1/output")
+```
 
 ## Leer archivos
 
-datos_internet_user \<- read.csv("TP1/data/internet_users_world_wide.csv", skip = 4)
-
-datos_internet_countries \<- read.csv("TP1/data/metadata_countries_internet_users.csv")
+```{r}
+datos_internet_user <- read.csv("../data/internet_users_world_wide.csv", skip = 4)
+datos_internet_countries <- read.csv("../data/metadata_countries_internet_users.csv")
+```
 
 ## Visualizar archivos
 
+```{r}
 head(datos_internet_user)
-
 head(datos_internet_countries)
+```
 
+--- 1er commit ---
 
+## Ver la estructura de las bases
+
+```{r}
+nrow(datos_internet_user)
+ncol(datos_internet_user)
+names(datos_internet_user)
+
+nrow(datos_internet_countries)
+ncol(datos_internet_countries)
+names(datos_internet_countries)
+```
+
+## Normalizar los nombres de las columnas
+
+```{r}
+datos_internet_user <- datos_internet_user |> clean_names()
+datos_internet_countries <- datos_internet_countries |> clean_names()
+```
+
+### Chequear que funcionó la normalización
+
+```{r}
+names(datos_internet_user)
+names(datos_internet_countries)
+```
+
+## Pasar "datos_internet_user" de wide a long
+
+```{r}
+datos_internet_user_long <- datos_internet_user |>
+  pivot_longer(
+    cols = starts_with("x"),
+    names_to = "year",
+    values_to = "internet_users"
+  )
+```
