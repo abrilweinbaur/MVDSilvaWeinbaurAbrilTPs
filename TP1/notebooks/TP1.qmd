@@ -11,6 +11,7 @@
 ```{r}
 # install.packages("janitor")
 # install.packages("tidyr")
+# install.packages("dplyr")
 ```
 
 ## Invocar librerias
@@ -18,6 +19,7 @@
 ```{r}
 library(janitor)
 library(tidyr)
+library(dplyr)
 ```
 
 ## Ubicar el archivo
@@ -103,12 +105,108 @@ colSums(is.na(datos_internet_countries))
 
 ## Gestionar/depurar NAs
 
-Se eliminaron las filas que contenian NAs ya que eran irrelevantes al proyecto y podían romper el codigo.
+datos_internet_user_long: Se eliminaron las filas que contenian NAs ya que eran irrelevantes al proyecto y podían romper el codigo. datos_internet_countries: Se elimino la columna "x" que solo contenía valores NA
 
 ```{r}
 datos_internet_user_long_sin_na <- datos_internet_user_long |> drop_na(internet_users)
 
-datos_internet_countries_sin_X <- datos_internet_countries |> subset(select = -x)
+datos_internet_countries_sin_x <- datos_internet_countries |> subset(select = -x)
 ```
 
+## Unificar tablas por "country_code"
 
+```{r}
+datos_internet_completo <- datos_internet_user_long_sin_na |>
+  left_join(
+    datos_internet_countries_sin_x,
+    by = "country_code"
+  )
+```
+
+## Chequear el join
+
+```{r}
+head(datos_internet_completo)
+names(datos_internet_completo)
+
+sum(is.na(datos_internet_completo))
+```
+
+## Limpiar la base de datos
+Sacar los datos inútiles y las "x" de los años 
+
+```{r}
+datos_internet_completo_limpio <- datos_internet_completo |>
+  subset(select = -c(indicator_name, indicator_code, special_notes, table_name))
+
+datos_internet_completo_limpio$year <- as.numeric(gsub("x", "", datos_internet_completo_limpio$year))
+```
+
+--- 3er commit ---
+
+## Filtrar por los años utiles para la hipótesis 
+
+```{r}
+datos_2013_2023 <- datos_internet_completo_limpio |>
+  filter(year >= 2013 & year <= 2023)
+```
+
+## Calcular promedio de acceso a internet por grupo de ingreso y año 
+
+```{r}
+promedio_por_ingreso_year <- datos_2013_2023 |>
+  group_by(income_group, year) |>
+  summarize(
+    promedio_internet = mean(internet_users, na.rm = TRUE),
+    cantidad_paises = n(),
+    .groups = "drop"
+  )
+```
+
+## Ordenar income_group como factor jerárquico y eliminar vacíos
+
+```{r}
+promedio_por_ingreso_year <- promedio_por_ingreso_year |>
+  filter(!is.na(income_group), income_group != "") |>
+  mutate(
+    income_group = factor(
+      income_group,
+      levels = c(
+        "Low income",
+        "Lower middle income",
+        "Upper middle income",
+        "High income"
+      ),
+      ordered = TRUE
+    )
+  ) |>
+  arrange(income_group, year)
+```
+
+## Combinar grupos de ingreso en dos bloques
+
+```{r}
+comparacion_bloques <- comparacion_2013_2023 |>
+  mutate(
+    bloque_ingreso = ifelse(
+      income_group %in% c("Low income", "Lower middle income"),
+      "ingresos_bajos",
+      "ingresos_altos"
+    )
+  ) |>
+  group_by(bloque_ingreso) |>
+  summarize(
+    promedio_2013 = mean(promedio_2013),
+    promedio_2023 = mean(promedio_2023),
+    .groups = "drop"
+  )
+```
+
+## Calcular crecimiento porcentual por bloque de ingreso
+
+```{r}
+comparacion_bloques_total <- comparacion_bloques |>
+  mutate(
+    crecimiento_porcentual = ((promedio_2023 - promedio_2013) / promedio_2013) * 100
+  )
+```
