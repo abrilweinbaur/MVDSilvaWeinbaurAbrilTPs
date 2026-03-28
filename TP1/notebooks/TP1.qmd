@@ -31,10 +31,10 @@ getwd()
 ## Crear carpetas
 
 ```{r}
-# dir.create("TP1")
-# dir.create("TP1/notebooks")
-# dir.create("TP1/data")
-# dir.create("TP1/output")
+dir.create("TP1")
+dir.create("TP1/notebooks")
+dir.create("TP1/data")
+dir.create("TP1/output")
 ```
 
 ## Leer archivos
@@ -133,7 +133,8 @@ sum(is.na(datos_internet_completo))
 ```
 
 ## Limpiar la base de datos
-Sacar los datos inútiles y las "x" de los años 
+
+Sacar los datos inútiles y las "x" de los años
 
 ```{r}
 datos_internet_completo_limpio <- datos_internet_completo |>
@@ -144,14 +145,14 @@ datos_internet_completo_limpio$year <- as.numeric(gsub("x", "", datos_internet_c
 
 --- 3er commit ---
 
-## Filtrar por los años utiles para la hipótesis 
+## Filtrar por los años utiles para la hipótesis
 
 ```{r}
 datos_2013_2023 <- datos_internet_completo_limpio |>
   filter(year >= 2013 & year <= 2023)
 ```
 
-## Calcular promedio de acceso a internet por grupo de ingreso y año 
+## Calcular promedio de acceso a internet por grupo de ingreso y año
 
 ```{r}
 promedio_por_ingreso_year <- datos_2013_2023 |>
@@ -202,11 +203,39 @@ comparacion_bloques <- comparacion_2013_2023 |>
   )
 ```
 
+## Función que calcula porcentaje
+
+```{r}
+calcular_crecimiento <- function(valor_inicial, valor_final) {
+  ((valor_final - valor_inicial) / valor_inicial) * 100
+}
+```
+
 ## Calcular crecimiento porcentual por bloque de ingreso
 
 ```{r}
 comparacion_bloques_total <- comparacion_bloques |>
   mutate(
-    crecimiento_porcentual = ((promedio_2023 - promedio_2013) / promedio_2013) * 100
+    crecimiento_porcentual = calcular_crecimiento(promedio_2013, promedio_2023)
   )
+```
+
+--- 3er commit ---
+
+## Visualizar la tabla final
+
+```{r}
+comparacion_bloques_total
+```
+
+## Conclusión 
+
+```{r}
+message("Como podemos ver en la tabla, los paises de bajos ingresos tienen un crecimiento porcentual de los usuarios que acceden a internet del 236.9% en cambio, los paises de altos ingresos tienen un crecimiento porcentual del 53.1%. Por lo tanto, la hipótesis se cumle")
+```
+
+Guardar el codigo en output
+
+```{r}
+write.csv(comparacion_bloques_total, "../output/resultado_hipotesis.csv", row.names = FALSE) 
 ```
