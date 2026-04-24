@@ -1,6 +1,6 @@
 ######################### 
 
-# TP individual n°1
+# TP individual n°2
 
 # Abril Silva Weinbaur
 
@@ -30,4 +30,5 @@ file.create("TP2/scripts/metrics_figures.R")
 ```{r}
 file.create("TP2/notebooks/informe_oea.qmd")
 ```
+#Muevo este archivo manualmente a TP2 y lo renombro como "setup_estructura.qmd" para organizar
 
