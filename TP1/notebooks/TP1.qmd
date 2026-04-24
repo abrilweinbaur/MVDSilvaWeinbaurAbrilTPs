@@ -228,7 +228,7 @@ comparacion_bloques_total <- comparacion_bloques |>
 comparacion_bloques_total
 ```
 
-## Conclusión 
+## Conclusión
 
 ```{r}
 message("Como podemos ver en la tabla, los paises de bajos ingresos tienen un crecimiento porcentual de los usuarios que acceden a internet del 236.9% en cambio, los paises de altos ingresos tienen un crecimiento porcentual del 53.1%. Por lo tanto, la hipótesis se cumle")
