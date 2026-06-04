@@ -1,0 +1,68 @@
+---
+title: "Trabajo Práctico Nº 3: Regresión logística"
+subtitle: "Análisis de ingresos altos en el Adult Census Income Dataset"
+author: "Abril Weinbaur"
+date: "`r Sys.Date()`"
+lang: es
+execute:
+  echo: true
+  output: true
+  eval: true
+  warning: false
+  message: false
+format:
+  html:
+    toc: true
+    toc-location: left
+    toc-title: "Contenidos"
+    embed-resources: true
+    theme: cosmo
+    code-fold: false
+    code-tools: true
+    df-print: paged
+    include-in-header:
+      text: |
+        <style>
+        body {
+          text-align: justify;
+          font-size: 16px;
+          line-height: 1.6;
+        }
+        h1, h2, h3 {
+          color: #2C3E50;
+        }
+        .callout {
+          margin-top: 1.5em;
+          margin-bottom: 1.5em;
+        }
+        </style>
+---
+
+::: callout-note
+**Objetivo del trabajo**
+
+Este trabajo analiza qué variables sociodemográficas y laborales se asocian con la probabilidad de tener ingresos anuales superiores a \$50.000 dólares. Para ello, vamos a utilizar una regresión logística binomial sobre la base adult_census_USA.csv
+:::
+
+# Preparación, carga y limpieza de datos
+
+```{r}
+#| label: paquetes
+#| warning: false
+#| message: false
+
+# Instalo pacman si no está disponible.
+## Lo uso para cargar todos los paquetes necesarios en una sola línea.
+if (!require("pacman")) install.packages("pacman")
+
+pacman::p_load(
+  tidyverse,        # Manipulación, limpieza y visualización de datos
+  here,             # Rutas relativas dentro del proyecto
+  janitor,          # Limpieza de nombres de columnas
+  broom,            # Ordenar resultados de modelos
+  modelsummary,     # Tablas de modelos y resultados
+  marginaleffects,  # Efectos marginales promedio
+  scales,           # Formato de porcentajes y ejes
+  kableExtra        # Formato estético de tablas
+)
+```
