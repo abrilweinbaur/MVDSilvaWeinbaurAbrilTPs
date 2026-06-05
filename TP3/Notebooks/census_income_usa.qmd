@@ -167,5 +167,88 @@ ggplot(balance_income, aes(x = income, y = prop, fill = income)) +
 ```
 
 ::: callout-note
-La **distribución de "income"** muestra qué proporción de la base pertenece a cada grupo de ingresos. Esta revisión es importante porque la regresión logística busca estimar la probabilidad de estar en la categoría **"\>50K"**; entonces, conviene saber desde el inicio si esa categoría tiene una presencia similar a **"\<=50"** o si aparece con mucha menor frecuencia en los datos.
+La **distribución de "income"** muestra qué proporción de la base pertenece a cada grupo de ingresos. Esta revisión es importante porque la regresión logística busca estimar la probabilidad de estar en la categoría **"\>50K"**; entonces, conviene saber desde el inicio si esa categoría tiene una presencia similar a **"\<=50K"** o si aparece con mucha menor frecuencia en los datos.
+:::
+
+## Selección de variables para el análisis
+
+```{r}
+#| label: seleccion-variables
+#| warning: false
+#| message: false
+
+# Selecciono las variables que voy a usar en el análisis.
+## La selección combina variables sociodemográficas y laborales que pueden estar asociadas con la probabilidad de tener ingresos superiores a 50.000 dólares anuales.
+datos_modelo <- datos |> 
+  select(
+    income,
+    income_num,
+    age,
+    education,
+    education_num,
+    marital_status,
+    occupation,
+    relationship,
+    race,
+    sex,
+    capital_gain,
+    capital_loss,
+    hours_per_week,
+    native_country
+  )
+
+# Reviso si hay valores perdidos en las variables seleccionadas.
+datos_modelo |> 
+  summarise(
+    across(everything(), ~ sum(is.na(.)))
+  )
+```
+
+## Recodificación de variables
+
+```{r}
+#| label: recodificacion-variables
+#| warning: false
+#| message: false
+
+# Reordeno variables para simplificar el análisis.
+datos_modelo <- datos_modelo |> 
+  mutate(
+    # Agrupo el estado civil en dos categorías principales.
+    ## La categoría "married" reúne a personas casadas; el resto queda agrupado como "not_married".
+    marital_simple = case_when(
+      str_detect(marital_status, "Married") ~ "married",
+      TRUE ~ "not_married"
+    ),
+    
+    # Agrupo el país de origen en dos categorías.
+    ## Esto permite distinguir entre personas nacidas en Estados Unidos y personas nacidas en otros países.
+    native_country_simple = case_when(
+      native_country == "United-States" ~ "United States",
+      TRUE ~ "Other"
+    ),
+    
+    # Transformo ganancias y pérdidas de capital con log1p.
+    ## Uso log1p(x) porque equivale a log(x + 1), lo que evita problemas cuando el valor original es 0.
+    log_capital_gain = log1p(capital_gain),
+    log_capital_loss = log1p(capital_loss)
+  ) |> 
+  
+  # Defino explícitamente las categorías de referencia de algunas variables.
+  ## Estas referencias sirven como punto de comparación en la regresión logística.
+  mutate(
+    sex = factor(sex),
+    marital_simple = factor(marital_simple, levels = c("not_married", "married")),
+    native_country_simple = factor(native_country_simple, levels = c("United States", "Other")),
+    race = factor(race),
+    occupation = factor(occupation),
+    education = factor(education)
+  )
+
+# Reviso la estructura de la base después de las recodificaciones.
+glimpse(datos_modelo)
+```
+
+::: callout-note
+Las **variables** seleccionadas buscan representar distintas dimensiones asociadas al nivel de ingreso: **características individuales** (edad, sexo y raza), **factores educativos** (nivel educativo alcanzado), **condiciones familiares** (estado civil), y **elementos laborales** (ocupación, horas trabajadas por semana y ganancias o pérdidas de capital). Además, fueron simplificadas algunas variables para **facilitar la interpretación del modelo**.
 :::
