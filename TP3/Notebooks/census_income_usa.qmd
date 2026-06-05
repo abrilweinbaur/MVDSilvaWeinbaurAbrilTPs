@@ -167,7 +167,7 @@ ggplot(balance_income, aes(x = income, y = prop, fill = income)) +
 ```
 
 ::: callout-note
-La **distribución de "income"** muestra qué proporción de la base pertenece a cada grupo de ingresos. Esta revisión es importante porque la regresión logística busca estimar la probabilidad de estar en la categoría **"\>50K"**; entonces, conviene saber desde el inicio si esa categoría tiene una presencia similar a **"\<=50K"** o si aparece con mucha menor frecuencia en los datos.
+La **distribución de `income`** muestra qué proporción de la base pertenece a cada grupo de ingresos. Esta revisión es importante porque la regresión logística busca estimar la probabilidad de estar en la categoría **`>50K`**; entonces, conviene saber desde el inicio si esa categoría tiene una presencia similar a **`<=50K`** o si aparece con mucha menor frecuencia en los datos.
 :::
 
 ## Selección de variables para el análisis
@@ -251,4 +251,165 @@ glimpse(datos_modelo)
 
 ::: callout-note
 Las **variables** seleccionadas buscan representar distintas dimensiones asociadas al nivel de ingreso: **características individuales** (edad, sexo y raza), **factores educativos** (nivel educativo alcanzado), **condiciones familiares** (estado civil), y **elementos laborales** (ocupación, horas trabajadas por semana y ganancias o pérdidas de capital). Además, fueron simplificadas algunas variables para **facilitar la interpretación del modelo**.
+:::
+
+# Análisis exploratorio y decisiones de transformación
+
+## Variables continuas e ingreso
+
+```{r}
+#| label: exploratorio-continuas
+#| warning: false
+#| message: false
+
+# Comparo la distribución de variables continuas según el nivel de ingreso.
+## Estos gráficos permiten observar si hay diferencias descriptivas entre quienes ganan <=50K y quienes ganan >50K.
+
+ggplot(datos_modelo, aes(x = income, y = age, fill = income)) +
+  geom_boxplot(alpha = 0.8) +
+  labs(
+    title = "Edad según nivel de ingreso",
+    x = "Nivel de ingreso",
+    y = "Edad",
+    fill = "Ingreso"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggplot(datos_modelo, aes(x = income, y = hours_per_week, fill = income)) +
+  geom_boxplot(alpha = 0.8) +
+  labs(
+    title = "Horas trabajadas por semana según nivel de ingreso",
+    x = "Nivel de ingreso",
+    y = "Horas trabajadas por semana",
+    fill = "Ingreso"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggplot(datos_modelo, aes(x = income, y = education_num, fill = income)) +
+  geom_boxplot(alpha = 0.8) +
+  labs(
+    title = "Años de educación según nivel de ingreso",
+    x = "Nivel de ingreso",
+    y = "Años de educación",
+    fill = "Ingreso"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+::: callout-note
+Los gráficos muestran una **primera comparación entre las variables continuas y el nivel de ingreso.** La edad, las horas trabajadas por semana y los años de educación permiten observar diferencias iniciales entre ambos grupos. Aunque estas relaciones son descriptivas, nos sirven para orientar la selección de predictores antes de ajustar la regresión logística.
+:::
+
+## Variables categóricas e ingreso
+
+```{r}
+#| label: exploratorio-categoricas
+#| warning: false
+#| message: false
+
+# Analizo la relación entre variables categóricas y la variable de ingreso.
+# Uso barras proporcionales para comparar la composición de ingresos dentro de cada categoría.
+
+ggplot(datos_modelo, aes(x = sex, fill = income)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = percent_format()) +
+  labs(
+    title = "Nivel de ingreso según sexo",
+    x = "Sexo",
+    y = "Proporción",
+    fill = "Ingreso"
+  ) +
+  theme_minimal()
+
+ggplot(datos_modelo, aes(x = marital_simple, fill = income)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = percent_format()) +
+  labs(
+    title = "Nivel de ingreso según estado civil simplificado",
+    x = "Estado civil",
+    y = "Proporción",
+    fill = "Ingreso"
+  ) +
+  theme_minimal()
+
+ggplot(datos_modelo, aes(x = education, fill = income)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = percent_format()) +
+  labs(
+    title = "Nivel de ingreso según educación",
+    x = "Nivel educativo",
+    y = "Proporción",
+    fill = "Ingreso"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+::: callout-note
+Estos gráficos permiten comparar qué proporción de personas pertenece a cada grupo de ingresos dentro de distintas categorías. En particular, las diferencias por sexo, estado civil y nivel educativo son relevantes porque pueden mostrar patrones desiguales de inserción laboral y de acceso a ingresos altos.
+:::
+
+## Distribución de ganancias y pérdidas de capital
+
+```{r}
+#| label: exploratorio-capital
+#| warning: false
+#| message: false
+
+# Observo la distribución original de capital_gain.
+ggplot(datos_modelo, aes(x = capital_gain)) +
+  geom_histogram(bins = 40, color = "white") +
+  labs(
+    title = "Distribución original de capital_gain",
+    x = "Ganancias de capital",
+    y = "Cantidad de observaciones"
+  ) +
+  theme_minimal()
+
+# Observo la distribución transformada de capital_gain.
+ggplot(datos_modelo, aes(x = log_capital_gain)) +
+  geom_histogram(bins = 40, color = "white") +
+  labs(
+    title = "Distribución transformada de capital_gain",
+    x = "log1p(capital_gain)",
+    y = "Cantidad de observaciones"
+  ) +
+  theme_minimal()
+
+# Observo la distribución original de capital_loss.
+ggplot(datos_modelo, aes(x = capital_loss)) +
+  geom_histogram(bins = 40, color = "white") +
+  labs(
+    title = "Distribución original de capital_loss",
+    x = "Pérdidas de capital",
+    y = "Cantidad de observaciones"
+  ) +
+  theme_minimal()
+
+# Observo la distribución transformada de capital_loss.
+ggplot(datos_modelo, aes(x = log_capital_loss)) +
+  geom_histogram(bins = 40, color = "white") +
+  labs(
+    title = "Distribución transformada de capital_loss",
+    x = "log1p(capital_loss)",
+    y = "Cantidad de observaciones"
+  ) +
+  theme_minimal()
+```
+
+::: callout-note
+Las variables **`capital_gain`** y **`capital_loss`** tienen una distribución muy concentrada en **valores bajos,** especialmente en cero, y algunos valores mucho más altos. Por eso se utiliza `log1p`, que equivale a calcular `log(x + 1)`. Esta transformación permite **conservar los casos con valor cero** y, al mismo tiempo, **reducir el peso visual y estadístico de los valores extremos.**
+:::
+
+## Decisión sobre la interacción
+
+::: callout-note
+A partir del análisis exploratorio, resulta razonable incorporar una interacción entre `education_num` y `sex`. La educación suele estar asociada con mejores oportunidades laborales y mayores ingresos, pero ese efecto puede no ser igual para varones y mujeres. En términos sustantivos, **la interacción permite evaluar si el aumento en la probabilidad de tener ingresos superiores a 50.000 dólares asociado a mayores años de educación cambia según el sexo de la persona.**
+
+Por ese motivo, el primer modelo se estimará sin interacciones y el segundo incorporará el término `education_num * sex`. De esta manera, el modelo interactivo no solo observará el efecto general de la educación, sino también si ese efecto varía entre grupos.
 :::
