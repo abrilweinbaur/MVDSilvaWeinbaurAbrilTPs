@@ -717,3 +717,15 @@ La comparación global muestra que **ambos modelos tienen un rendimiento muy sim
 
 Por lo tanto, **la interacción entre `education_num` y `sex` no parece mejorar sustantivamente el modelo**. En términos prácticos, el Modelo 1 resulta más conveniente porque alcanza un ajuste casi idéntico sin agregar el término interactivo.
 :::
+
+# Conclusión final
+
+::: callout-note
+En este trabajo se estimaron modelos de regresión logística binomial para analizar **qué variables sociodemográficas y laborales se asocian con la probabilidad de tener ingresos anuales superiores a 50.000 dólares.**
+
+El análisis exploratorio mostró **diferencias relevantes entre los grupos de ingreso según edad, educación, horas trabajadas, sexo, estado civil y capital acumulado**. Además, las variables `capital_gain` y `capital_loss` presentaban una fuerte concentración en valores bajos y varios valores extremos, por lo que fueron transformadas mediante `log1p`.
+
+En términos del modelo, los resultados muestran que **variables como los años de educación, el estado civil, las horas trabajadas por semana y las ganancias de capital están asociadas con mayores chances de pertenecer al grupo de ingresos superiores a 50.000 dólares.** A su vez, el análisis mediante efectos marginales permitió interpretar estos resultados en términos de cambios promedio en la probabilidad, lo que facilita una lectura más directa que los coeficientes logísticos originales.
+
+La comparación entre modelos indica que **la interacción entre `education_num` y `sex` no mejora sustantivamente el ajuste.** El Modelo 2 presenta un Pseudo R² apenas superior al del Modelo 1, pero también un AIC levemente mayor. Por eso, el Modelo 1 resulta más simple y alcanza un ajuste prácticamente equivalente sin incorporar el término interactivo.
+:::
