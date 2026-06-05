@@ -651,3 +651,69 @@ ggplot(forest_data, aes(x = estimate, y = term)) +
 El **gráfico de bosque** resume visualmente la dirección y magnitud de las asociaciones estimadas por el **Modelo 2**. La **línea vertical** en 1 representa ausencia de cambio en las chances. Los **puntos ubicados a la derecha** de esa línea indican mayores chances de tener ingresos superiores a 50.000 dólares, mientras que los **puntos ubicados a la izquierda** indican menores chances. Los intervalos más anchos reflejan mayor incertidumbre en la estimación.
 :::
 
+# Comparación global de modelos
+
+::: callout-note
+En esta sección **se comparan el Modelo 1 y el Modelo 2** para evaluar si la inclusión de la interacción entre `education_num` y `sex` mejora el ajuste general. Para eso se utilizan **dos criterios:** el `AIC` y el `Pseudo R²` calculado a partir de las deviances.
+:::
+
+```{r}
+#| label: comparacion-modelos
+#| warning: false
+#| message: false
+
+# Comparo ambos modelos usando métricas globales de ajuste.
+## broom::glance() permite extraer indicadores generales del modelo, como AIC, deviance y null.deviance.
+comparacion_modelos <- bind_rows(
+  glance(modelo_1) |> 
+    mutate(modelo = "Modelo 1: base"),
+  
+  glance(modelo_2) |> 
+    mutate(modelo = "Modelo 2: interacción")
+) |> 
+  mutate(
+
+# Calculo el Pseudo R² visto en clase a partir de las deviances.
+    pseudo_r2 = 1 - deviance / null.deviance
+  ) |> 
+  select(
+    modelo,
+    AIC,
+    BIC,
+    deviance,
+    null.deviance,
+    pseudo_r2
+  )
+
+# Presento la comparación en una tabla estética.
+comparacion_modelos |> 
+  mutate(
+    AIC = round(AIC, 2),
+    BIC = round(BIC, 2),
+    deviance = round(deviance, 2),
+    null.deviance = round(null.deviance, 2),
+    pseudo_r2 = round(pseudo_r2, 4)
+  ) |> 
+  kable(
+    col.names = c(
+      "Modelo",
+      "AIC",
+      "BIC",
+      "Deviance",
+      "Null deviance",
+      "Pseudo R²"
+    ),
+    caption = "Comparación global entre modelos"
+  ) |> 
+  kable_styling(full_width = FALSE)
+```
+
+::: callout-note
+El AIC permite comparar modelos considerando tanto el ajuste como la complejidad: **valores más bajos indican un mejor equilibrio entre precisión y parsimonia.** El Pseudo R², calculado a partir de las deviances, permite observar **cuánto mejora el modelo respecto de un modelo nulo.** En este caso, la comparación permite evaluar si agregar la interacción entre `education_num` y `sex` aporta una **mejora sustantiva al modelo base.**
+:::
+
+::: callout-note
+La comparación global muestra que **ambos modelos tienen un rendimiento muy similar**. El **Modelo 1** tiene un AIC de `13388.30` y un Pseudo R² de `0.3876`, mientras que el **Modelo 2** tiene un AIC de `13388.77` y un Pseudo R² de `0.3877`. Aunque el modelo con interacción mejora apenas el Pseudo R², **esa diferencia es prácticamente nula**. Además, el AIC aumenta levemente, lo que indica que la **mayor complejidad del Modelo 2 no se traduce en una mejora clara del ajuste.**
+
+Por lo tanto, **la interacción entre `education_num` y `sex` no parece mejorar sustantivamente el modelo**. En términos prácticos, el Modelo 1 resulta más conveniente porque alcanza un ajuste casi idéntico sin agregar el término interactivo.
+:::
