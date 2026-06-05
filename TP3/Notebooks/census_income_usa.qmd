@@ -41,7 +41,7 @@ format:
 ::: callout-note
 **Objetivo del trabajo**
 
-Este trabajo analiza qué variables sociodemográficas y laborales se asocian con la probabilidad de tener ingresos anuales superiores a \$50.000 dólares. Para ello, vamos a utilizar una regresión logística binomial sobre la base adult_census_USA.csv
+Este trabajo analiza qué variables **sociodemográficas** y **laborales** se asocian con la probabilidad de tener ingresos anuales superiores a **\$50.000 dólares**. Para ello, vamos a utilizar una regresión logística binomial sobre la base adult_census_USA.csv
 :::
 
 # Preparación, carga y limpieza de datos
@@ -66,3 +66,106 @@ pacman::p_load(
   kableExtra        # Formato estético de tablas
 )
 ```
+
+## Carga de datos
+
+```{r}
+#| label: carga-datos
+#| warning: false
+#| message: false
+
+# Cargo la base desde la carpeta TP3/data.
+# Uso here() para construir una ruta relativa desde la raíz del proyecto.
+datos_raw <- read_csv(here("TP3", "data", "adult_census_USA.csv"))
+
+# Limpio los nombres de las columnas para trabajar con nombres más cómodos en R.
+datos_raw <- datos_raw |> 
+  clean_names()
+
+# Reviso la estructura general de la base.
+glimpse(datos_raw)
+
+# Reviso los nombres de las variables disponibles.
+names(datos_raw)
+```
+
+## Limpieza inicial de la base
+
+```{r}
+#| label: limpieza-inicial
+#| warning: false
+#| message: false
+
+# Creo una base de trabajo a partir de los datos originales.
+# Primero elimino espacios innecesarios en las variables de texto.
+datos <- datos_raw |> 
+  mutate(
+    across(where(is.character), str_trim)
+  ) |> 
+  
+  # Defino income como factor.
+  # El orden de los niveles es importante: <=50K queda como categoría de referencia
+  # y >50K queda como la categoría cuya probabilidad vamos a modelar.
+  mutate(
+    income = factor(income, levels = c("<=50K", ">50K")),
+    
+    # Creo también una versión numérica de la variable dependiente.
+    # Esta variable auxiliar sirve para calcular proporciones y facilitar algunos gráficos.
+    income_num = if_else(income == ">50K", 1, 0)
+  )
+
+# Verifico que los niveles de income hayan quedado en el orden correcto.
+levels(datos$income)
+
+# Reviso nuevamente la estructura de la base limpia.
+glimpse(datos)
+```
+
+## Balance de la variable dependiente
+
+```{r}
+#| label: balance-income
+#| warning: false
+#| message: false
+
+# Calculo la cantidad y proporción de observaciones en cada categoría de ingreso.
+balance_income <- datos |> 
+  count(income) |> 
+  mutate(
+    prop = n / sum(n),
+    porcentaje = percent(prop, accuracy = 0.1)
+  )
+
+balance_income |> 
+  kable(
+    col.names = c("Ingreso", "Cantidad", "Proporción", "Porcentaje"),
+    caption = "Distribución de la variable dependiente"
+  ) |> 
+  kable_styling(full_width = FALSE)
+```
+
+```{r}
+#| label: grafico-balance-income
+#| warning: false
+#| message: false
+
+# Grafico la distribución de la variable dependiente para observar el balance entre clases.
+ggplot(balance_income, aes(x = income, y = prop, fill = income)) +
+  geom_col(width = 0.6, alpha = 0.85) +
+  geom_text(aes(label = porcentaje), vjust = -0.4) +
+  scale_y_continuous(labels = percent_format(), limits = c(0, 1)) +
+  labs(
+    title = "Distribución de la variable dependiente",
+    x = "Nivel de ingreso",
+    y = "Proporción de observaciones",
+    fill = "Ingreso"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none"
+  )
+```
+
+::: callout-note
+La **distribución de "income"** muestra qué proporción de la base pertenece a cada grupo de ingresos. Esta revisión es importante porque la regresión logística busca estimar la probabilidad de estar en la categoría **"\>50K"**; entonces, conviene saber desde el inicio si esa categoría tiene una presencia similar a **"\<=50"** o si aparece con mucha menor frecuencia en los datos.
+:::
