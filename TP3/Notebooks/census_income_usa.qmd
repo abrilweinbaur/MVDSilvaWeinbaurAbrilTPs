@@ -411,5 +411,56 @@ Las variables **`capital_gain`** y **`capital_loss`** tienen una distribución m
 ::: callout-note
 A partir del análisis exploratorio, resulta razonable incorporar una interacción entre `education_num` y `sex`. La educación suele estar asociada con mejores oportunidades laborales y mayores ingresos, pero ese efecto puede no ser igual para varones y mujeres. En términos sustantivos, **la interacción permite evaluar si el aumento en la probabilidad de tener ingresos superiores a 50.000 dólares asociado a mayores años de educación cambia según el sexo de la persona.**
 
-Por ese motivo, el primer modelo se estimará sin interacciones y el segundo incorporará el término `education_num * sex`. De esta manera, el modelo interactivo no solo observará el efecto general de la educación, sino también si ese efecto varía entre grupos.
+Por ese motivo, el primer modelo se estimará sin interacciones y el segundo incorporará el término **`education_num * sex`**. De esta manera, el modelo interactivo no solo observará el efecto general de la educación, sino también si ese efecto varía entre grupos.
+:::
+
+# Ajuste de modelos de regresión logística
+
+::: callout-note
+En esta sección se estiman **dos modelos de regresión logística** binomial. El primer modelo funciona como modelo base y no incluye interacciones. El segundo modelo incorpora la interacción entre **`education_num` y `sex`**, justificada en la sección anterior.
+:::
+
+```{r}
+#| label: modelos-logisticos
+#| warning: false
+#| message: false
+
+# Ajusto el Modelo 1, sin interacciones.
+## La variable dependiente es income, con <=50K como categoría de referencia y >50K como categoría cuya probabilidad se busca modelar.
+modelo_1 <- glm(
+  income ~ age +
+    education_num +
+    sex +
+    marital_simple +
+    race +
+    hours_per_week +
+    log_capital_gain +
+    log_capital_loss +
+    native_country_simple,
+  data = datos_modelo,
+  family = binomial
+)
+
+# Ajusto el Modelo 2, incorporando la interacción entre educación y sexo.
+## La interacción permite evaluar si el efecto de los años de educación sobre la probabilidad de tener ingresos altos cambia según el sexo.
+modelo_2 <- glm(
+  income ~ age +
+    education_num * sex +
+    marital_simple +
+    race +
+    hours_per_week +
+    log_capital_gain +
+    log_capital_loss +
+    native_country_simple,
+  data = datos_modelo,
+  family = binomial
+)
+
+# Reviso un resumen inicial de ambos modelos.
+summary(modelo_1)
+summary(modelo_2)
+```
+
+::: callout-note
+El **Modelo 1** estima la asociación entre cada predictor y la probabilidad de tener ingresos superiores a 50.000 dólares, manteniendo constantes las demás variables del modelo. El **Modelo 2** conserva los mismos predictores, pero agrega la interacción entre `education_num` y `sex`. Por lo tanto, permite observar si la relación entre educación e ingresos altos varía según el sexo de la persona.
 :::
