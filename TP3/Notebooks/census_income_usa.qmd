@@ -354,6 +354,39 @@ ggplot(datos_modelo, aes(x = education, fill = income)) +
 Estos gráficos permiten comparar qué proporción de personas pertenece a cada grupo de ingresos dentro de distintas categorías. En particular, las diferencias por sexo, estado civil y nivel educativo son relevantes porque pueden mostrar patrones desiguales de inserción laboral y de acceso a ingresos altos.
 :::
 
+## Respaldo visual del término de interacción
+
+```{r}
+#| label: respaldo-visual-interaccion
+#| warning: false
+#| message: false
+#| fig-width: 9
+#| fig-height: 5
+
+# Grafico la distribución de ingresos bajos y altos según años de educación,separando la visualización por sexo.
+## Esto permite observar si la relación entre educación e ingreso parece comportarse de manera distinta entre varones y mujeres.
+
+ggplot(datos_modelo, aes(x = factor(education_num), fill = income)) +
+  geom_bar(position = "fill") +
+  facet_wrap(~ sex) +
+  scale_y_continuous(labels = percent_format()) +
+  labs(
+    title = "Distribución del nivel de ingreso según educación y sexo",
+    subtitle = "Proporción de ingresos <=50K y >50K por años de educación",
+    x = "Años de educación",
+    y = "Proporción",
+    fill = "Ingreso"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 1)
+  )
+```
+
+::: callout-note
+Este gráfico permite observar cómo cambia la proporción de personas con ingresos `<=50K` y `>50K` según los años de educación, separando la visualización por sexo. En ambos grupos se observa que la proporción de personas con ingresos superiores a 50.000 dólares aumenta a medida que crece `education_num`. Sin embargo, la comparación entre paneles permite evaluar si ese aumento tiene una intensidad similar o distinta entre mujeres y varones. Por eso, el gráfico funciona como respaldo visual para probar la interacción entre `education_num` y `sex` en el Modelo 2.
+:::
+
 ## Distribución de ganancias y pérdidas de capital
 
 ```{r}
@@ -649,6 +682,67 @@ ggplot(forest_data, aes(x = estimate, y = term)) +
 
 ::: callout-note
 El **gráfico de bosque** resume visualmente la dirección y magnitud de las asociaciones estimadas por el **Modelo 2**. La **línea vertical** en 1 representa ausencia de cambio en las chances. Los **puntos ubicados a la derecha** de esa línea indican mayores chances de tener ingresos superiores a 50.000 dólares, mientras que los **puntos ubicados a la izquierda** indican menores chances. Los intervalos más anchos reflejan mayor incertidumbre en la estimación.
+:::
+
+## Interpretación concreta del Modelo 2
+
+```{r}
+#| label: interpretacion-concreta-modelo-2
+#| warning: false
+#| message: false
+
+# Armo una tabla auxiliar para interpretar con mayor claridad qué variables aumentan o reducen las chances de tener ingresos superiores a 50.000 dólares.
+interpretacion_or <- odds_modelo_2 |> 
+  mutate(
+    cambio_porcentual_chances = (estimate - 1) * 100,
+    significativo = if_else(p.value < 0.05, "Sí", "No"),
+    direccion = case_when(
+      estimate > 1 ~ "Aumenta las chances",
+      estimate < 1 ~ "Reduce las chances",
+      TRUE ~ "Sin cambio"
+    )
+  ) |> 
+  select(
+    term,
+    estimate,
+    cambio_porcentual_chances,
+    conf.low,
+    conf.high,
+    p.value,
+    direccion,
+    significativo
+  )
+
+interpretacion_or |> 
+  mutate(
+    estimate = round(estimate, 3),
+    cambio_porcentual_chances = round(cambio_porcentual_chances, 1),
+    conf.low = round(conf.low, 3),
+    conf.high = round(conf.high, 3),
+    p.value = round(p.value, 4)
+  ) |> 
+  kable(
+    col.names = c(
+      "Variable",
+      "Odds ratio",
+      "Cambio % en chances",
+      "IC inferior 95%",
+      "IC superior 95%",
+      "p-valor",
+      "Dirección",
+      "Significativo"
+    ),
+    caption = "Interpretación concreta de los odds ratios del Modelo 2"
+  ) |> 
+  kable_styling(full_width = FALSE)
+```
+
+::: callout-note
+El **Modelo 2** muestra que varias variables se asocian claramente con la probabilidad de tener ingresos superiores a 50.000 dólares. En particular, **los odds ratios ubicados a la derecha de 1 en el forest plot indican variables asociadas con mayores chances de pertenecer al grupo `>50K`**, mientras que **los odds ratios ubicados a la izquierda de 1 indican menores chances.**
+
+Los resultados respaldan parcialmente la expectativa inicial: **la educación se asocia positivamente con los ingresos altos,** ya que mayores años de educación aumentan las chances estimadas de superar el umbral de 50.000 dólares. También **se observan asociaciones positivas en variables como estado civil, horas trabajadas por semana y ganancias de capital,** lo que sugiere que tanto factores educativos como laborales y patrimoniales contribuyen a explicar la pertenencia al grupo de ingresos altos.
+
+Sin embargo, la hipótesis específica de que el efecto de la educación cambia de manera sustantiva según el sexo **no queda fuertemente respaldada.** Aunque el Modelo 2 incorpora la interacción `education_num * sex`, la comparación global posterior muestra que este término no mejora de forma clara el ajuste del modelo. Por lo tanto, **sí parece que la educación importa a la hora de explicar ingresos altos, aunque la evidencia del modelo no permite afirmar que su efecto varíe sustantivamente entre varones y mujeres.**
 :::
 
 # Comparación global de modelos
